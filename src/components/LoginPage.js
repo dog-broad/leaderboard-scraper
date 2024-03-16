@@ -1,24 +1,28 @@
 import React, { useState } from 'react';
-import { auth } from '../services/firebase';
+import { signInWithPopup, signOut } from "firebase/auth";
+import { auth, googleProvider } from '../services/firebase';
 
 function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
-  const handleLogin = async () => {
+  const signInWithGoogle = async () => {
     try {
-      await auth.signInWithEmailAndPassword(email, password);
-      // Redirect to Dashboard or handle success accordingly
-    } catch (error) {
-      console.error('Login error:', error);
+    await signInWithPopup(auth,googleProvider);
+    } catch (err){
+      console.error(err);
+    }
+  };
+
+  const logOut = async () => {
+    try {
+    await signOut(auth);
+    } catch (err){
+      console.error(err);
     }
   };
 
   return (
     <div>
-      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button onClick={handleLogin}>Login</button>
+      <button onClick={signInWithGoogle}> Signin with google</button>
     </div>
   );
 }
