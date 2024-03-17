@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'; // Import Navigate
 import { auth } from '../services/firebase';
 import './Dashboard.css';
 
 function Dashboard() {
   const [userInfo, setUserInfo] = useState(null);
+  const [userNotLoggedIn, setUserNotLoggedIn] = useState(false);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -15,6 +16,9 @@ function Dashboard() {
           email: currentUser.email,
           photoURL: currentUser.photoURL,
         });
+      }
+      else{
+        setUserNotLoggedIn(true);
       }
     };
 
@@ -29,6 +33,10 @@ function Dashboard() {
       console.error('Logout error:', error);
     }
   };
+
+  if (userNotLoggedIn) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className="container">

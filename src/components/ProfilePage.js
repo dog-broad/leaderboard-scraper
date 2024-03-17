@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link for navigation
 import { auth } from '../services/firebase';
-import './ProfileForm.css';
+import './ProfilePage.css';
 
 function ProfileForm() {
   const [geeksForGeeks, setGeeksForGeeks] = useState({ platform: 'geeksforgeeks', username: '', verified: false });
@@ -28,10 +28,24 @@ function ProfileForm() {
     fetchUserInfo();
   }, []);
 
-  const handleVerify = (platform, setUsername) => {
-    // Perform verification logic here
-    // For simplicity, assuming verification is successful
-    setUsername({ ...setUsername, verified: true });
+  const handleVerify = async (platform, setUsername, setVerified) => {
+    const response = await fetch(`https://leetcode.com/`,{
+      // Set CORS Headers
+      headers: {  
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      }
+    });
+    const data = await response.json();
+    console.log(data);
+    if (!data.errors) {
+      setVerified(true);
+      setUsername({ ...setUsername, verified: true });
+    } else {
+      setVerified(false);
+      setUsername({ ...setUsername, verified: false });
+    }
   };
 
   const handleSave = async () => {
@@ -47,22 +61,14 @@ function ProfileForm() {
 
   const handleUsernameChange = (e, setUsername) => {
     const inputUsername = e.target.value;
-    // if null or undefined, return
-    if (!inputUsername) {
-      return;
-    }
     const formattedUsername = inputUsername.replace(/[A-Z]/g, (match) => match.toLowerCase()); // Convert uppercase to lowercase
     if (/^[a-z0-9_]{1,20}$/.test(formattedUsername)) { // Check character limit and format
-      // get the element
-      const element = e.target;
-      element.value = formattedUsername;
-      setUsername(formattedUsername);
+      setUsername({ username: formattedUsername, verified: false });
       setErrorMessage(''); // Clear previous error message
     } else {
       setErrorMessage('Username should be 1-20 characters long, lowercase, and may only contain letters, numbers, or underscores.'); // Display error message
     }
   };
-  
 
   return (
     <div className="profile-form-container">
@@ -76,58 +82,58 @@ function ProfileForm() {
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={geeksForGeeks.username} // Display formatted username
+          value={geeksForGeeks.username}
           onChange={(e) => handleUsernameChange(e, setGeeksForGeeks)}
           placeholder="GeeksforGeeks Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
         />
-        <button onClick={() => handleVerify('geeksforgeeks', setGeeksForGeeks)} className="profile-form-button">Verify</button>
+        <button onClick={() => handleVerify('geeksforgeeks', geeksForGeeks, setGeeksForGeeks)} className={geeksForGeeks.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
       </div>
 
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={codeforces.username} // Display formatted username
+          value={codeforces.username}
           onChange={(e) => handleUsernameChange(e, setCodeforces)}
           placeholder="Codeforces Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
         />
-        <button onClick={() => handleVerify('codeforces', setCodeforces)} className="profile-form-button">Verify</button>
+        <button onClick={() => handleVerify('codeforces', codeforces, setCodeforces)} className={codeforces.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
       </div>
 
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={leetCode.username} // Display formatted username
+          value={leetCode.username}
           onChange={(e) => handleUsernameChange(e, setLeetCode)}
           placeholder="LeetCode Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
         />
-        <button onClick={() => handleVerify('leetcode', setLeetCode)} className="profile-form-button">Verify</button>
+        <button onClick={() => handleVerify('leetcode', leetCode, setLeetCode)} className={leetCode.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
       </div>
 
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={codeChef.username} // Display formatted username
+          value={codeChef.username}
           onChange={(e) => handleUsernameChange(e, setCodeChef)}
           placeholder="CodeChef Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
         />
-        <button onClick={() => handleVerify('codechef', setCodeChef)} className="profile-form-button">Verify</button>
+        <button onClick={() => handleVerify('codechef', codeChef, setCodeChef)} className={codeChef.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
       </div>
 
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={hackerRank.username} // Display formatted username
+          value={hackerRank.username}
           onChange={(e) => handleUsernameChange(e, setHackerRank)}
           placeholder="HackerRank Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
         />
-        <button onClick={() => handleVerify('hackerrank', setHackerRank)} className="profile-form-button">Verify</button>
+        <button onClick={() => handleVerify('hackerrank', hackerRank, setHackerRank)} className={hackerRank.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
       </div>     
-      
+
       {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
 
       <button onClick={handleSave} className="profile-form-button" disabled={saveDisabled}>Save</button>

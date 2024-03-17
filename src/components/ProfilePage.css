@@ -53,7 +53,18 @@
     background-color: #0056b3;
 }
 
-.profile-form-error-message {
-    color: #f00;
-    margin-top: 5px;
+.profile-form-button.verified {
+    background-color: #28a745;
+}
+
+.profile-form-button.verified:hover {
+    background-color: #218838;
+}
+
+.profile-form-button.invalid {
+    background-color: #dc3545;
+}
+
+.profile-form-button.invalid:hover {
+    background-color: #c82333;
 }

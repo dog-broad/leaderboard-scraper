@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { auth } from './services/firebase';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
-import ProfileForm from './components/ProfileForm';
+import ProfilePage from './components/ProfilePage';
 
 function App() {
   const [currentUser, setCurrentUser] = React.useState(auth.currentUser);
@@ -29,7 +29,7 @@ function App() {
         />
         <Route
           path="/profile"
-          element={currentUser ? <ProfileForm /> : <Navigate to="/login" />}
+          element={<ProfilePage />}
         />
         <Route path="/login" 
         element={currentUser ? <Navigate to="/dashboard" />: <LoginPage />}
