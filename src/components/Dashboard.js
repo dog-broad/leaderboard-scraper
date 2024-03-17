@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link for navigation
 import { auth } from '../services/firebase';
-import styles from './Dashboard.css';
+import './Dashboard.css';
 
 function Dashboard() {
   const [userInfo, setUserInfo] = useState(null);
