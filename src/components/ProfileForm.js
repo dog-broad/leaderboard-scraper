@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // Import Link for navigation
+import { auth } from '../services/firebase';
 import './ProfileForm.css';
 
 function ProfileForm() {
@@ -9,6 +11,22 @@ function ProfileForm() {
   const [hackerRank, setHackerRank] = useState({ platform: 'hackerrank', username: '', verified: false });
   const [errorMessage, setErrorMessage] = useState('');
   const [saveDisabled, setSaveDisabled] = useState(true);
+  const [userInfo, setUserInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        setUserInfo({
+          name: currentUser.displayName,
+          email: currentUser.email,
+          photoURL: currentUser.photoURL,
+        });
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   const handleVerify = (platform, setUsername) => {
     // Perform verification logic here
@@ -29,16 +47,36 @@ function ProfileForm() {
 
   const handleUsernameChange = (e, setUsername) => {
     const inputUsername = e.target.value;
-    setUsername(inputUsername);
-    // Validation logic can be added here
+    // if null or undefined, return
+    if (!inputUsername) {
+      return;
+    }
+    const formattedUsername = inputUsername.replace(/[A-Z]/g, (match) => match.toLowerCase()); // Convert uppercase to lowercase
+    if (/^[a-z0-9_]{1,20}$/.test(formattedUsername)) { // Check character limit and format
+      // get the element
+      const element = e.target;
+      element.value = formattedUsername;
+      setUsername(formattedUsername);
+      setErrorMessage(''); // Clear previous error message
+    } else {
+      setErrorMessage('Username should be 1-20 characters long, lowercase, and may only contain letters, numbers, or underscores.'); // Display error message
+    }
   };
+  
 
   return (
     <div className="profile-form-container">
+      <div className="profile-form-user-info">
+        <img src={userInfo?.photoURL} alt="User" className="profile-form-user-avatar" />
+        <div>
+          <h2>{userInfo?.name}</h2>
+          <p>{userInfo?.email}</p>
+        </div>
+      </div>
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={geeksForGeeks.username}
+          value={geeksForGeeks.username} // Display formatted username
           onChange={(e) => handleUsernameChange(e, setGeeksForGeeks)}
           placeholder="GeeksforGeeks Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
@@ -49,7 +87,7 @@ function ProfileForm() {
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={codeforces.username}
+          value={codeforces.username} // Display formatted username
           onChange={(e) => handleUsernameChange(e, setCodeforces)}
           placeholder="Codeforces Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
@@ -60,7 +98,7 @@ function ProfileForm() {
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={leetCode.username}
+          value={leetCode.username} // Display formatted username
           onChange={(e) => handleUsernameChange(e, setLeetCode)}
           placeholder="LeetCode Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
@@ -71,7 +109,7 @@ function ProfileForm() {
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={codeChef.username}
+          value={codeChef.username} // Display formatted username
           onChange={(e) => handleUsernameChange(e, setCodeChef)}
           placeholder="CodeChef Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
@@ -82,7 +120,7 @@ function ProfileForm() {
       <div className="profile-form-input-container">
         <input
           type="text"
-          value={hackerRank.username}
+          value={hackerRank.username} // Display formatted username
           onChange={(e) => handleUsernameChange(e, setHackerRank)}
           placeholder="HackerRank Username"
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}

@@ -1,37 +1,51 @@
-/* ProfileForm.css */
-
 .profile-form-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
 }
 
-.profile-form-input-container {
+.profile-form-user-info {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
 }
 
-.profile-form-input {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-right: 10px;
+.profile-form-user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 20px;
 }
 
-.profile-form-select {
+.profile-form-input-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.profile-form-input {
+    width: calc(100% - 100px);
+    /* Adjust based on button width */
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    margin-right: 10px;
+    font-size: 16px;
 }
 
 .profile-form-button {
-    background-color: #007bff;
-    color: white;
+    width: 90px;
+    /* Adjust button width */
+    margin-left: 10px;
+    /* Adjust spacing between input and button */
+    padding: 10px;
     border: none;
-    padding: 10px 20px;
     border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 16px;
     cursor: pointer;
 }
 
@@ -40,10 +54,6 @@
 }
 
 .profile-form-error-message {
-    color: red;
-    margin-bottom: 10px;
-}
-
-.profile-form-input.invalid {
-    border-color: red;
+    color: #f00;
+    margin-top: 5px;
 }
