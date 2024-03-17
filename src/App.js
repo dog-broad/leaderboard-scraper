@@ -6,7 +6,7 @@ import Dashboard from './components/Dashboard';
 import ProfileForm from './components/ProfileForm';
 
 function App() {
-  const [currentUser, setCurrentUser] = React.useState(null);
+  const [currentUser, setCurrentUser] = React.useState(auth.currentUser);
 
   React.useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
@@ -21,18 +21,18 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={currentUser ? <Dashboard /> : <Navigate to="/login" />} // Use Navigate to redirect to /login
+          element={currentUser ? <Dashboard /> : <Navigate to="/login" />}
         />
         <Route
           path="/dashboard"
-          element={currentUser ? <Dashboard /> : <Navigate to="/login" />} // Use Navigate to redirect to /login
+          element={currentUser ? <Dashboard /> : <Navigate to="/login" />}
         />
         <Route
           path="/profile"
-          element={currentUser ? <ProfileForm /> : <Navigate to="/login" />} // Use Navigate to redirect to /login
+          element={currentUser ? <ProfileForm /> : <Navigate to="/login" />}
         />
         <Route path="/login" 
-        element={currentUser ? <Navigate to="/dashboard" />: <LoginPage />} // Define the /login route
+        element={currentUser ? <Navigate to="/dashboard" />: <LoginPage />}
         />
       </Routes>
     </Router>
