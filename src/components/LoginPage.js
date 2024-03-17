@@ -12,14 +12,6 @@ function LoginPage() {
     }
   };
 
-  const logOut = async () => {
-    try {
-    await signOut(auth);
-    } catch (err){
-      console.error(err);
-    }
-  };
-
   return (
     <div>
       <button onClick={signInWithGoogle}> Signin with google</button>

@@ -1,7 +1,5 @@
-// src/App.js
-
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // Import Navigate
 import { auth } from './services/firebase';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
@@ -21,8 +19,21 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={currentUser ? <Dashboard /> : <LoginPage />} />
-        <Route path="/profile" element={currentUser ? <ProfileForm /> : <LoginPage />} />
+        <Route
+          path="/"
+          element={currentUser ? <Dashboard /> : <Navigate to="/login" />} // Use Navigate to redirect to /login
+        />
+        <Route
+          path="/dashboard"
+          element={currentUser ? <Dashboard /> : <Navigate to="/login" />} // Use Navigate to redirect to /login
+        />
+        <Route
+          path="/profile"
+          element={currentUser ? <ProfileForm /> : <Navigate to="/login" />} // Use Navigate to redirect to /login
+        />
+        <Route path="/login" 
+        element={currentUser ? <Navigate to="/dashboard" />: <LoginPage />} // Define the /login route
+        />
       </Routes>
     </Router>
   );
