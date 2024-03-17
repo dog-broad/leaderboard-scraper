@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
 import { auth } from '../services/firebase';
 import './ProfilePage.css';
 
@@ -12,6 +11,8 @@ function ProfileForm() {
   const [errorMessage, setErrorMessage] = useState('');
   const [saveDisabled, setSaveDisabled] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
+
+  setSaveDisabled(true);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -52,11 +53,6 @@ function ProfileForm() {
     // Save to database if all usernames are verified
     // For simplicity, just displaying an alert
     alert('Data saved successfully!');
-  };
-
-  const handleInputChange = (e, setPlatform, setUsername) => {
-    setPlatform(e.target.value);
-    setUsername('');
   };
 
   const handleUsernameChange = (e, setUsername) => {
