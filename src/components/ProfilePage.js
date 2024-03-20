@@ -28,12 +28,7 @@ function ProfileForm() {
 
   const handleVerify = async (platform, setUsername, setVerified) => {
     const response = await fetch(`https://leetcode.com/`,{
-      // Set CORS Headers
-      headers: {  
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      }
+      mode: 'no-cors',
     });
     const data = await response.json();
     console.log(data);
