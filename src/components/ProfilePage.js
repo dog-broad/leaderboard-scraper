@@ -32,7 +32,7 @@ function ProfileForm() {
       // https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=21r01a67e6
       console.log(`url: https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=${userData.username}`);
       let response = null;
-      fetch(`https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=${userData.username}`, {
+      fetch(`https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=${userData.username}/?username=rushi12565&api_key=de8327a178be2d91956a3698af5239c181064af2`, {
         method: 'GET',
         headers: {
         'Content-Type': 'application/json',
