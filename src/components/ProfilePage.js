@@ -26,20 +26,39 @@ function ProfileForm() {
     fetchUserInfo();
   }, []);
 
-  const handleVerify = async (platform, setUsername, setVerified) => {
-    const response = await fetch(`https://leetcode.com/`,{
-      mode: 'no-cors',
-    });
-    const data = await response;
-    console.log(data);
-    if (!data.errors) {
-      setVerified(true);
-      setUsername({ ...setUsername, verified: true });
-    } else {
-      setVerified(false);
-      setUsername({ ...setUsername, verified: false });
+  const handleVerify = async (platform, userData, setData) => {
+    try {
+      console.log(`Verifying ${platform} username...`);
+      // https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=21r01a67e6
+      console.log(`url: https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=${userData.username}`);
+      let response = null;
+      fetch(`https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=${userData.username}`, {
+        method: 'GET',
+        headers: {
+          "Accept": 'application/json',
+          "Allow-Control-Allow-Origin": "*",
+        },
+      },
+      ).then(response => {
+        if (response.ok) {
+          response.json().then(json => {
+            console.log(json);
+          });
+        }
+      });
+      console.log(response);
+      console.log(`Response: ${response.status}`);
+      if (response.ok) {
+        setData(prevState => ({ ...prevState, verified: true }));
+      } else {
+        setData(prevState => ({ ...prevState, verified: false }));
+      }
+    } catch (error) {
+      console.error('Error during verification:', error);
+      setData(prevState => ({ ...prevState, verified: false }));
     }
   };
+  
 
   const handleSave = async () => {
     // Save to database if all usernames are verified
