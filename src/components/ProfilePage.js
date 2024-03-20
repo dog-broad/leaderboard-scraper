@@ -30,7 +30,7 @@ function ProfileForm() {
     const response = await fetch(`https://leetcode.com/`,{
       mode: 'no-cors',
     });
-    const data = await response.json();
+    const data = await response;
     console.log(data);
     if (!data.errors) {
       setVerified(true);
