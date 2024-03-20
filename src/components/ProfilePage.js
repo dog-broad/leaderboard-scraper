@@ -12,8 +12,6 @@ function ProfileForm() {
   const [saveDisabled, setSaveDisabled] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
 
-  setSaveDisabled(true);
-
   useEffect(() => {
     const fetchUserInfo = async () => {
       const currentUser = auth.currentUser;
