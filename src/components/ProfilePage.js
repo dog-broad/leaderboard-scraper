@@ -9,7 +9,6 @@ function ProfileForm() {
   const [codeChef, setCodeChef] = useState({ platform: 'codechef', username: '', verified: false });
   const [hackerRank, setHackerRank] = useState({ platform: 'hackerrank', username: '', verified: false });
   const [errorMessage, setErrorMessage] = useState('');
-  const [saveDisabled, setSaveDisabled] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
 
   useEffect(() => {
@@ -130,7 +129,7 @@ function ProfileForm() {
 
       {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
 
-      <button onClick={handleSave} className="profile-form-button" disabled={saveDisabled}>Save</button>
+      <button onClick={handleSave} className="profile-form-button">Save</button>
     </div>
   );
 }
