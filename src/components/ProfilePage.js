@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../services/firebase';
+import $ from 'jquery'; // Add this line to fix the error
 import './ProfilePage.css';
 
 function ProfileForm() {
@@ -29,7 +30,7 @@ function ProfileForm() {
   const handleVerify = async (platform, userData, setData) => {
     try {
       console.log(`Verifying ${platform} username...`);
-      const url = `https://www.${platform}.com/${userData.username}`
+      const url = `https://www.${platform}.com/${userData.username}`;
       $.ajax({
         url: url,
         dataType: 'jsonp',
