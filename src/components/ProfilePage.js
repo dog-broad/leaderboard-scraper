@@ -29,37 +29,27 @@ function ProfileForm() {
   const handleVerify = async (platform, userData, setData) => {
     try {
       console.log(`Verifying ${platform} username...`);
-      // https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=21r01a67e6
-      console.log(`url: https://clist.by:443/api/v4/account/?resource=leetcode.com&handle=${userData.username}`);
-      let response = null;
-      fetch(`https://clist.by:443/api/v4/account/?username=rushi12565&api_key=de8327a178be2d91956a3698af5239c181064af2&resource=leetcode.com&handle=${userData.username}`, {
-        method: 'GET',
-        headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+      const url = `https://www.${platform}.com/${userData.username}`
+      $.ajax({
+        url: url,
+        dataType: 'jsonp',
+        statusCode: {
+          200: function () {
+            console.log("status code 200 returned");
+          },
+          404: function () {
+            console.log("status code 404 returned");
+          }
         },
-      },
-      ).then(response => {
-        if (response.ok) {
-          response.json().then(json => {
-            console.log(json);
-          });
+        error: function () {
+          console.log("Error");
         }
       });
-      console.log(response);
-      console.log(`Response: ${response.status}`);
-      if (response.ok) {
-        setData(prevState => ({ ...prevState, verified: true }));
-      } else {
-        setData(prevState => ({ ...prevState, verified: false }));
-      }
     } catch (error) {
-      console.error('Error during verification:', error);
-      setData(prevState => ({ ...prevState, verified: false }));
+      console.error(error);
     }
   };
-  
+
 
   const handleSave = async () => {
     // Save to database if all usernames are verified
@@ -140,7 +130,7 @@ function ProfileForm() {
           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
         />
         <button onClick={() => handleVerify('hackerrank', hackerRank, setHackerRank)} className={hackerRank.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
-      </div>     
+      </div>
 
       {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
 
