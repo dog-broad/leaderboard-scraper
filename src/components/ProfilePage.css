@@ -62,9 +62,15 @@
 }
 
 .profile-form-button.invalid {
-    background-color: #dc3545;
+    background-color: #dc3545; /* Red color */
 }
 
 .profile-form-button.invalid:hover {
-    background-color: #c82333;
+    background-color: #c82333; /* Darker shade of red on hover */
+}
+
+.profile-form-error-message {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 10px;
 }

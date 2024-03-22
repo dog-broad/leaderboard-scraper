@@ -1,0 +1,307 @@
+diff --git a/package-lock.json b/package-lock.json
+index 0aa9276..caa4a70 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -8,11 +8,15 @@
+       "name": "leaderboard-scraper",
+       "version": "0.1.0",
+       "dependencies": {
++        "@fortawesome/fontawesome-svg-core": "^6.5.1",
++        "@fortawesome/free-solid-svg-icons": "^6.5.1",
++        "@fortawesome/react-fontawesome": "^0.2.0",
+         "@testing-library/jest-dom": "^5.17.0",
+         "@testing-library/react": "^13.4.0",
+         "@testing-library/user-event": "^13.5.0",
+         "firebase": "^10.9.0",
+         "firebaseui": "^6.1.0",
++        "fortawesome": "^0.0.1-security",
+         "jquery": "^3.7.1",
+         "react": "^18.2.0",
+         "react-dom": "^18.2.0",
+@@ -2877,6 +2881,51 @@
+       "resolved": "https://registry.npmjs.org/@firebase/webchannel-wrapper/-/webchannel-wrapper-0.10.5.tgz",
+       "integrity": "sha512-eSkJsnhBWv5kCTSU1tSUVl9mpFu+5NXXunZc83le8GMjMlsWwQArSc7cJJ4yl+aDFY0NGLi0AjZWMn1axOrkRg=="
+     },
++    "node_modules/@fortawesome/fontawesome-common-types": {
++      "version": "6.5.1",
++      "resolved": "https://registry.npmjs.org/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-6.5.1.tgz",
++      "integrity": "sha512-GkWzv+L6d2bI5f/Vk6ikJ9xtl7dfXtoRu3YGE6nq0p/FFqA1ebMOAWg3XgRyb0I6LYyYkiAo+3/KrwuBp8xG7A==",
++      "hasInstallScript": true,
++      "engines": {
++        "node": ">=6"
++      }
++    },
++    "node_modules/@fortawesome/fontawesome-svg-core": {
++      "version": "6.5.1",
++      "resolved": "https://registry.npmjs.org/@fortawesome/fontawesome-svg-core/-/fontawesome-svg-core-6.5.1.tgz",
++      "integrity": "sha512-MfRCYlQPXoLlpem+egxjfkEuP9UQswTrlCOsknus/NcMoblTH2g0jPrapbcIb04KGA7E2GZxbAccGZfWoYgsrQ==",
++      "hasInstallScript": true,
++      "dependencies": {
++        "@fortawesome/fontawesome-common-types": "6.5.1"
++      },
++      "engines": {
++        "node": ">=6"
++      }
++    },
++    "node_modules/@fortawesome/free-solid-svg-icons": {
++      "version": "6.5.1",
++      "resolved": "https://registry.npmjs.org/@fortawesome/free-solid-svg-icons/-/free-solid-svg-icons-6.5.1.tgz",
++      "integrity": "sha512-S1PPfU3mIJa59biTtXJz1oI0+KAXW6bkAb31XKhxdxtuXDiUIFsih4JR1v5BbxY7hVHsD1RKq+jRkVRaf773NQ==",
++      "hasInstallScript": true,
++      "dependencies": {
++        "@fortawesome/fontawesome-common-types": "6.5.1"
++      },
++      "engines": {
++        "node": ">=6"
++      }
++    },
++    "node_modules/@fortawesome/react-fontawesome": {
++      "version": "0.2.0",
++      "resolved": "https://registry.npmjs.org/@fortawesome/react-fontawesome/-/react-fontawesome-0.2.0.tgz",
++      "integrity": "sha512-uHg75Rb/XORTtVt7OS9WoK8uM276Ufi7gCzshVWkUJbHhh3svsUUeqXerrM96Wm7fRiDzfKRwSoahhMIkGAYHw==",
++      "dependencies": {
++        "prop-types": "^15.8.1"
++      },
++      "peerDependencies": {
++        "@fortawesome/fontawesome-svg-core": "~1 || ~6",
++        "react": ">=16.3"
++      }
++    },
+     "node_modules/@grpc/grpc-js": {
+       "version": "1.9.14",
+       "resolved": "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.9.14.tgz",
+@@ -9514,6 +9563,11 @@
+         "node": ">= 6"
+       }
+     },
++    "node_modules/fortawesome": {
++      "version": "0.0.1-security",
++      "resolved": "https://registry.npmjs.org/fortawesome/-/fortawesome-0.0.1-security.tgz",
++      "integrity": "sha512-o/pwn9ZSnveFLYP0d5IejSwz0rpGMDQsBaYVvR8WXSvnxILIwh7IUJK0P90QMF4cnIyouVF2BGrz0LEVSyzimA=="
++    },
+     "node_modules/forwarded": {
+       "version": "0.2.0",
+       "resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.2.0.tgz",
+diff --git a/package.json b/package.json
+index 98d6613..f4fa5f6 100644
+--- a/package.json
++++ b/package.json
+@@ -3,11 +3,15 @@
+   "version": "0.1.0",
+   "private": true,
+   "dependencies": {
++    "@fortawesome/fontawesome-svg-core": "^6.5.1",
++    "@fortawesome/free-solid-svg-icons": "^6.5.1",
++    "@fortawesome/react-fontawesome": "^0.2.0",
+     "@testing-library/jest-dom": "^5.17.0",
+     "@testing-library/react": "^13.4.0",
+     "@testing-library/user-event": "^13.5.0",
+     "firebase": "^10.9.0",
+     "firebaseui": "^6.1.0",
++    "fortawesome": "^0.0.1-security",
+     "jquery": "^3.7.1",
+     "react": "^18.2.0",
+     "react-dom": "^18.2.0",
+diff --git a/src/components/ProfilePage.css b/src/components/ProfilePage.css
+index 7dd2ba3..cf2e57d 100644
+--- a/src/components/ProfilePage.css
++++ b/src/components/ProfilePage.css
+@@ -62,9 +62,15 @@
+ }
+ 
+ .profile-form-button.invalid {
+-    background-color: #dc3545;
++    background-color: #dc3545; /* Red color */
+ }
+ 
+ .profile-form-button.invalid:hover {
+-    background-color: #c82333;
++    background-color: #c82333; /* Darker shade of red on hover */
+ }
++
++.profile-form-error-message {
++    color: #dc3545;
++    font-size: 14px;
++    margin-top: 10px;
++}
+\ No newline at end of file
+diff --git a/src/components/ProfilePage.js b/src/components/ProfilePage.js
+index 828aa14..df29c3f 100644
+--- a/src/components/ProfilePage.js
++++ b/src/components/ProfilePage.js
+@@ -1,14 +1,18 @@
+ import React, { useState, useEffect } from 'react';
+ import { auth } from '../services/firebase';
+-import $ from 'jquery'; // Add this line to fix the error
++import $ from 'jquery';
+ import './ProfilePage.css';
+ 
++// Import Font Awesome
++import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
++import { faSpinner } from '@fortawesome/free-solid-svg-icons';
++
+ function ProfileForm() {
+-  const [geeksForGeeks, setGeeksForGeeks] = useState({ platform: 'geeksforgeeks', username: '', verified: false });
+-  const [codeforces, setCodeforces] = useState({ platform: 'codeforces', username: '', verified: false });
+-  const [leetCode, setLeetCode] = useState({ platform: 'leetcode', username: '', verified: false });
+-  const [codeChef, setCodeChef] = useState({ platform: 'codechef', username: '', verified: false });
+-  const [hackerRank, setHackerRank] = useState({ platform: 'hackerrank', username: '', verified: false });
++  const [geeksForGeeks, setGeeksForGeeks] = useState({ platform: 'geeksforgeeks', username: '', verificationStatus: 'unchecked', loading: false });
++  const [codeforces, setCodeforces] = useState({ platform: 'codeforces', username: '', verificationStatus: 'unchecked', loading: false });
++  const [leetCode, setLeetCode] = useState({ platform: 'leetcode', username: '', verificationStatus: 'unchecked', loading: false });
++  const [codeChef, setCodeChef] = useState({ platform: 'codechef', username: '', verificationStatus: 'unchecked', loading: false });
++  const [hackerRank, setHackerRank] = useState({ platform: 'hackerrank', username: '', verificationStatus: 'unchecked', loading: false });
+   const [errorMessage, setErrorMessage] = useState('');
+   const [userInfo, setUserInfo] = useState(null);
+ 
+@@ -30,28 +34,52 @@ function ProfileForm() {
+   const handleVerify = async (platform, userData, setData) => {
+     try {
+       console.log(`Verifying ${platform} username...`);
+-      const url = `https://www.${platform}.com/${userData.username}`;
++      let url = '';
++      if (platform === 'leetcode') {
++        // url = `https://www.${platform}.com/${userData.username}`
++        // url = `https://leetcode.com/graphql?query=query{userContestRanking(username:"${userData.username}"){rating}}`;
++        url = `https://alfa-leetcode-api.onrender.com/${userData.username}`;
++      } else {
++        url = `https://codeprofilevalidator.onrender.com/check-url-platform/?platform=${platform}&username=${userData.username}`;
++      }
++
++      // Set loading state to true when verification process starts
++      setData(prevData => ({ ...prevData, loading: true }));
++      setErrorMessage('');
++
+       $.ajax({
+         url: url,
+-        dataType: 'jsonp',
++        dataType: 'json',
+         statusCode: {
+-          200: function () {
+-            console.log("status code 200 returned");
++          200: function (d) {
++            // check if response json has "errors" key
++            if ('errors' in d) {
++              console.log(d.errors);
++              console.log("status code 200 returned");
++              setData({ platform, username: userData.username, verificationStatus: 'verified_false', loading: false });
++            } else {
++              console.log(d);
++              console.log("status code 200 returned");
++              setData({ platform, username: userData.username, verificationStatus: 'verified_true', loading: false });
++            }
+           },
+-          404: function () {
++          400: function (d) {
++            console.log(d);
++            setData({ platform, username: userData.username, verificationStatus: 'verified_false', loading: false });
++            setErrorMessage(d.responseJSON.error);
++          },
++          404: function (d) {
++            console.log(d);
+             console.log("status code 404 returned");
++            setData({ platform, username: userData.username, verificationStatus: 'verified_false', loading: false });
+           }
+         },
+-        error: function () {
+-          console.log("Error");
+-        }
+-      });
++      })
+     } catch (error) {
+       console.error(error);
+     }
+   };
+ 
+-
+   const handleSave = async () => {
+     // Save to database if all usernames are verified
+     // For simplicity, just displaying an alert
+@@ -61,7 +89,7 @@ function ProfileForm() {
+   const handleUsernameChange = (e, setUsername) => {
+     const inputUsername = e.target.value;
+     const formattedUsername = inputUsername.replace(/[A-Z]/g, (match) => match.toLowerCase()); // Convert uppercase to lowercase
+-    if (/^[a-z0-9_]{1,20}$/.test(formattedUsername)) { // Check character limit and format
++    if (inputUsername === '' || /^[a-z0-9_]{1,20}$/.test(formattedUsername)) { // Check if input is empty or matches the format
+       setUsername({ username: formattedUsername, verified: false });
+       setErrorMessage(''); // Clear previous error message
+     } else {
+@@ -78,6 +106,7 @@ function ProfileForm() {
+           <p>{userInfo?.email}</p>
+         </div>
+       </div>
++      {/* GeeksForGeeks */}
+       <div className="profile-form-input-container">
+         <input
+           type="text"
+@@ -86,9 +115,12 @@ function ProfileForm() {
+           placeholder="GeeksforGeeks Username"
+           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
+         />
+-        <button onClick={() => handleVerify('geeksforgeeks', geeksForGeeks, setGeeksForGeeks)} className={geeksForGeeks.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
++        <button onClick={() => handleVerify('geeksforgeeks', geeksForGeeks, setGeeksForGeeks)} className={geeksForGeeks.loading ? 'profile-form-button loading' : geeksForGeeks.verificationStatus === 'unchecked' ? 'profile-form-button' : geeksForGeeks.verificationStatus === 'verified_true' ? 'profile-form-button verified' : geeksForGeeks.verificationStatus === 'verified_false' ? 'profile-form-button invalid' : 'profile-form-button'}>
++          {geeksForGeeks.loading ? <FontAwesomeIcon icon={faSpinner} spin /> : geeksForGeeks.verificationStatus === 'verified_true' ? 'Exists' : geeksForGeeks.verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
++        </button>
+       </div>
+ 
++      {/* Codeforces */}
+       <div className="profile-form-input-container">
+         <input
+           type="text"
+@@ -97,9 +129,12 @@ function ProfileForm() {
+           placeholder="Codeforces Username"
+           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
+         />
+-        <button onClick={() => handleVerify('codeforces', codeforces, setCodeforces)} className={codeforces.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
++        <button onClick={() => handleVerify('codeforces', codeforces, setCodeforces)} className={codeforces.loading ? 'profile-form-button loading' : codeforces.verificationStatus === 'unchecked' ? 'profile-form-button' : codeforces.verificationStatus === 'verified_true' ? 'profile-form-button verified' : codeforces.verificationStatus === 'verified_false' ? 'profile-form-button invalid' : 'profile-form-button'}>
++          {codeforces.loading ? <FontAwesomeIcon icon={faSpinner} spin /> : codeforces.verificationStatus === 'verified_true' ? 'Exists' : codeforces.verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
++        </button>
+       </div>
+ 
++      {/* LeetCode */}
+       <div className="profile-form-input-container">
+         <input
+           type="text"
+@@ -108,9 +143,12 @@ function ProfileForm() {
+           placeholder="LeetCode Username"
+           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
+         />
+-        <button onClick={() => handleVerify('leetcode', leetCode, setLeetCode)} className={leetCode.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
++        <button onClick={() => handleVerify('leetcode', leetCode, setLeetCode)} className={leetCode.loading ? 'profile-form-button loading' : leetCode.verificationStatus === 'unchecked' ? 'profile-form-button' : leetCode.verificationStatus === 'verified_true' ? 'profile-form-button verified' : leetCode.verificationStatus === 'verified_false' ? 'profile-form-button invalid' : 'profile-form-button'}>
++          {leetCode.loading ? <FontAwesomeIcon icon={faSpinner} spin /> : leetCode.verificationStatus === 'verified_true' ? 'Exists' : leetCode.verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
++        </button>
+       </div>
+ 
++      {/* CodeChef */}
+       <div className="profile-form-input-container">
+         <input
+           type="text"
+@@ -119,9 +157,12 @@ function ProfileForm() {
+           placeholder="CodeChef Username"
+           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
+         />
+-        <button onClick={() => handleVerify('codechef', codeChef, setCodeChef)} className={codeChef.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
++        <button onClick={() => handleVerify('codechef', codeChef, setCodeChef)} className={codeChef.loading ? 'profile-form-button loading' : codeChef.verificationStatus === 'unchecked' ? 'profile-form-button' : codeChef.verificationStatus === 'verified_true' ? 'profile-form-button verified' : codeChef.verificationStatus === 'verified_false' ? 'profile-form-button invalid' : 'profile-form-button'}>
++          {codeChef.loading ? <FontAwesomeIcon icon={faSpinner} spin /> : codeChef.verificationStatus === 'verified_true' ? 'Exists' : codeChef.verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
++        </button>
+       </div>
+ 
++      {/* HackerRank */}
+       <div className="profile-form-input-container">
+         <input
+           type="text"
+@@ -130,11 +171,12 @@ function ProfileForm() {
+           placeholder="HackerRank Username"
+           className={errorMessage ? 'profile-form-input invalid' : 'profile-form-input'}
+         />
+-        <button onClick={() => handleVerify('hackerrank', hackerRank, setHackerRank)} className={hackerRank.verified ? 'profile-form-button verified' : 'profile-form-button'}>Verify</button>
++        <button onClick={() => handleVerify('hackerrank', hackerRank, setHackerRank)} className={hackerRank.loading ? 'profile-form-button loading' : hackerRank.verificationStatus === 'unchecked' ? 'profile-form-button' : hackerRank.verificationStatus === 'verified_true' ? 'profile-form-button verified' : hackerRank.verificationStatus === 'verified_false' ? 'profile-form-button invalid' : 'profile-form-button'}>
++          {hackerRank.loading ? <FontAwesomeIcon icon={faSpinner} spin /> : hackerRank.verificationStatus === 'verified_true' ? 'Exists' : hackerRank.verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
++        </button>
+       </div>
+ 
+       {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
+-
+       <button onClick={handleSave} className="profile-form-button">Save</button>
+     </div>
+   );
