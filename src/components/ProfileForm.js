@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { firestore } from '../services/firebase';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import $ from 'jquery';
@@ -16,6 +17,8 @@ function ProfileForm({ currentUser }) {
     { platform: 'hackerrank', state: useState({ platform: 'hackerrank', username: '', verificationStatus: 'unchecked', loading: false }) },
   ];
 
+  const [yearOfPassing, setYearOfPassing] = useState('');
+  const [hallTicketNo, setHallTicketNo] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleVerify = async (platform, userData, setData) => {
@@ -82,7 +85,14 @@ function ProfileForm({ currentUser }) {
         alert('User not authenticated. Please sign in.');
         return;
       }
-  
+
+      // Validation for year of passing
+      const selectedYear = parseInt(yearOfPassing);
+      if (isNaN(selectedYear) || selectedYear < 2025) {
+        setErrorMessage('Please select a valid year of passing.');
+        return;
+      }
+
       // Construct the data to be saved
       const userDataToSave = {
         userId: currentUser.uid,
@@ -91,27 +101,28 @@ function ProfileForm({ currentUser }) {
           username: state[0].username,
           verificationStatus: state[0].verificationStatus,
         })),
+        yearOfPassing: selectedYear,
+        hallTicketNo: hallTicketNo,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
-  
+
       // Ensure all usernames are verified
       if (platforms.some(({ state }) => state[0].verificationStatus !== 'verified_true')) {
         alert('Please verify all usernames before saving.');
         return;
       }
-  
+
       // Save data to Firestore
       await setDoc(doc(firestore, 'users', currentUser.uid), userDataToSave);
-  
+
       alert('Data saved successfully!');
     } catch (error) {
       console.error('Error saving data to Firestore:', error);
       alert('Error saving data. Please try again later.');
     }
   };
-  
-  
+
   const handleUsernameChange = (e, setUsername) => {
     const inputUsername = e.target.value;
     const formattedUsername = inputUsername.replace(/[A-Z]/g, (match) => match.toLowerCase());
@@ -123,34 +134,73 @@ function ProfileForm({ currentUser }) {
     }
   };
 
+  // Generate options for year of passing dropdown
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear + i);
+
   return (
-    <div className="container">
-      <div className="row">
-        <div className="col-md-8 mx-auto">
+    <Container>
+      <Row className="justify-content-center">
+        <Col md={8}>
           <div className="card profile-form-container">
             <div className="card-body">
-              {platforms.map(({ platform, state }) => (
-                <div key={platform} className="profile-form-input-container d-flex align-items-center mb-3">
-                  <input
-                    type="text"
-                    value={state[0].username}
-                    onChange={(e) => handleUsernameChange(e, state[1])}
-                    placeholder={`${platform.charAt(0).toUpperCase() + platform.slice(1)} Username`}
-                    className={errorMessage ? 'profile-form-input form-control is-invalid' : 'profile-form-input form-control'}
-                  />
-                  <button onClick={() => handleVerify(platform, state[0], state[1])} className={state[0].loading ? 'profile-form-button loading btn btn-primary' : state[0].verificationStatus === 'unchecked' ? 'profile-form-button btn btn-primary' : state[0].verificationStatus === 'verified_true' ? 'profile-form-button verified btn btn-success' : state[0].verificationStatus === 'verified_false' ? 'profile-form-button invalid btn btn-danger' : 'profile-form-button btn btn-primary'}>
-                    {state[0].loading ? <FontAwesomeIcon icon={faSpinner} spin /> : state[0].verificationStatus === 'verified_true' ? 'Exists' : state[0].verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
-                  </button>
-                </div>
-              ))}
-
-              {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
-              <button onClick={handleSave} className="profile-form-button btn btn-primary">Save</button>
+              {/* Year of Passing */}
+              <Form.Group controlId="yearOfPassing" className="mb-3">
+                <Form.Label className="h5">Year of Passing</Form.Label>
+                <Form.Control
+                  as="select"
+                  value={yearOfPassing}
+                  onChange={(e) => setYearOfPassing(e.target.value)}
+                >
+                  {yearOptions.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </Form.Control>
+              </Form.Group>
+              
+              {/* Hall Ticket No. */}
+              <Form.Group controlId="hallTicketNo" className="mb-3">
+                <Form.Label className="h5">Hall Ticket No.</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={hallTicketNo}
+                  onChange={(e) => setHallTicketNo(e.target.value)}
+                  placeholder="Enter Hall Ticket No."
+                />
+              </Form.Group>
+  
+              {/* Platforms */}
+              <Form.Group controlId="platforms">
+                <Form.Label className="h5">Platforms</Form.Label>
+                {platforms.map(({ platform, state }) => (
+                  <div key={platform} className="d-flex align-items-center mb-3">
+                    <Form.Control
+                      type="text"
+                      value={state[0].username}
+                      onChange={(e) => handleUsernameChange(e, state[1])}
+                      placeholder={`${platform.charAt(0).toUpperCase() + platform.slice(1)} Username`}
+                      className={errorMessage ? 'form-control is-invalid' : 'form-control'}
+                    />
+                    <Button
+                      onClick={() => handleVerify(platform, state[0], state[1])}
+                      className={state[0].loading ? 'profile-form-button loading btn btn-primary' : state[0].verificationStatus === 'unchecked' ? 'profile-form-button btn btn-primary' : state[0].verificationStatus === 'verified_true' ? 'profile-form-button verified btn btn-success' : state[0].verificationStatus === 'verified_false' ? 'profile-form-button invalid btn btn-danger' : 'profile-form-button btn btn-primary'}
+                    >
+                      {state[0].loading ? <FontAwesomeIcon icon={faSpinner} spin /> : state[0].verificationStatus === 'verified_true' ? 'Exists' : state[0].verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
+                    </Button>
+                  </div>
+                ))}
+              </Form.Group>
+  
+              {/* Error message and save button */}
+              <div>
+                {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
+                <Button onClick={handleSave} className="profile-form-button btn btn-primary">Save</Button>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 }
 
