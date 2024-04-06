@@ -8,6 +8,13 @@ import $ from 'jquery';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ProfileForm.css'; // Keep your custom styles if needed
 
+// Import platform icons
+import codechefIcon from '../assets/codechef.png';
+import codeforcesIcon from '../assets/codeforces.png';
+import gfgIcon from '../assets/gfg.png';
+import hackerrankIcon from '../assets/hackerrank.png';
+import leetcodeIcon from '../assets/leetcode.png';
+
 function ProfileForm({ currentUser }) {
   const platforms = [
     { platform: 'geeksforgeeks', state: useState({ platform: 'geeksforgeeks', username: '', verificationStatus: 'unchecked', loading: false }) },
@@ -64,8 +71,8 @@ function ProfileForm({ currentUser }) {
             console.log(d);
             console.log("status code 429 returned");
             setData({ platform, username: userData.username, verificationStatus: 'verified_false', loading: false });
-            setErrorMessage(d.response);
-            alert(d);
+            setErrorMessage(d.responseText);
+            alert(d.responseText);
           },
           404: function (d) {
             console.log(d);
@@ -136,7 +143,16 @@ function ProfileForm({ currentUser }) {
 
   // Generate options for year of passing dropdown
   const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear + i);
+  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear + i);
+
+  // Map platform names to their corresponding icons
+  const platformIcons = {
+    codechef: codechefIcon,
+    codeforces: codeforcesIcon,
+    geeksforgeeks: gfgIcon,
+    hackerrank: hackerrankIcon,
+    leetcode: leetcodeIcon
+  };
 
   return (
     <Container>
@@ -174,6 +190,7 @@ function ProfileForm({ currentUser }) {
                 <Form.Label className="h5">Platforms</Form.Label>
                 {platforms.map(({ platform, state }) => (
                   <div key={platform} className="d-flex align-items-center mb-3">
+                    <img src={platformIcons[platform]} alt={platform} className="mr-2" style={{ width: '30px', height: '30px', marginRight: '10px' }} />
                     <Form.Control
                       type="text"
                       value={state[0].username}
