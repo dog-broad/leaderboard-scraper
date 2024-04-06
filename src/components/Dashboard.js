@@ -1,3 +1,4 @@
+// src/components/Dashboard.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Navigate, Link } from 'react-router-dom'; // Import Navigate
 import { auth } from '../services/firebase';

@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 // load config env vars
@@ -13,5 +14,7 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig);
-export const auth =  getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
+const auth =  getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+const firestore = getFirestore(app);
+export { auth, googleProvider, firestore };
