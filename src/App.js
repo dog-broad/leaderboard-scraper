@@ -7,6 +7,7 @@ import Header from './components/Header';
 import MainPage from './components/MainPage';
 import ProfilePage from './components/ProfilePage';
 import LeaderboardPage from './components/LeaderboardPage';
+import UserDataPage from './components/UserDataPage';
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -27,6 +28,7 @@ function App() {
           <Routes>
             <Route path="/" element={<MainPage currentUser={currentUser} />} />
             <Route path="/profile" element={<ProfilePage currentUser={currentUser} />} />
+            <Route path="/userdata" element={<UserDataPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
           </Routes>
         </Container>

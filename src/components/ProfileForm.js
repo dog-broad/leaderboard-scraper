@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+// Inside the ProfileForm component
+
+import React, { useState, useEffect } from 'react';
 import { firestore } from '../services/firebase';
-import { doc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -27,6 +29,38 @@ function ProfileForm({ currentUser }) {
   const [yearOfPassing, setYearOfPassing] = useState('');
   const [hallTicketNo, setHallTicketNo] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isUpdatable, setIsUpdatable] = useState(true); // State to manage updatable status
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!currentUser) return;
+  
+        const docRef = doc(firestore, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+  
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          setYearOfPassing(userData.yearOfPassing || '');
+          setHallTicketNo(userData.hallTicketNo || '');
+          platforms.forEach(({ platform, state }) => {
+            const userPlatformData = userData.platforms.find(item => item.platform === platform);
+            if (userPlatformData) {
+              state[1]({ ...state[0], username: userPlatformData.username });
+            }
+          });
+          // Check if the updatedAt date is same as today
+          const updatedAt = userData.updatedAt ? userData.updatedAt.toDate() : null;
+          const today = new Date();
+          setIsUpdatable(!updatedAt || updatedAt.getDate() !== today.getDate() || updatedAt.getMonth() !== today.getMonth() || updatedAt.getFullYear() !== today.getFullYear());
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+  
+    fetchData();
+  }); // Empty dependency array ensures this effect runs only once after the initial render  
 
   const handleVerify = async (platform, userData, setData) => {
     try {
@@ -103,15 +137,17 @@ function ProfileForm({ currentUser }) {
       // Construct the data to be saved
       const userDataToSave = {
         userId: currentUser.uid,
+        name: currentUser.displayName,
+        email: currentUser.email,
+        photoURL: currentUser.photoURL,
+        yearOfPassing: selectedYear,
+        hallTicketNo: hallTicketNo,
+        updatedAt: Timestamp.now(),
         platforms: platforms.map(({ platform, state }) => ({
           platform: platform,
           username: state[0].username,
           verificationStatus: state[0].verificationStatus,
         })),
-        yearOfPassing: selectedYear,
-        hallTicketNo: hallTicketNo,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
       };
 
       // Ensure all usernames are verified
@@ -158,7 +194,7 @@ function ProfileForm({ currentUser }) {
     <Container>
       <Row className="justify-content-center">
         <Col md={8}>
-          <div className="card profile-form-container">
+          <div className="card profile-form-container" style={{ filter: isUpdatable ? 'none' : 'blur(4px)', pointerEvents: isUpdatable ? 'auto' : 'none' }}>
             <div className="card-body">
               {/* Year of Passing */}
               <Form.Group controlId="yearOfPassing" className="mb-3">
@@ -167,6 +203,7 @@ function ProfileForm({ currentUser }) {
                   as="select"
                   value={yearOfPassing}
                   onChange={(e) => setYearOfPassing(e.target.value)}
+                  disabled={!isUpdatable} // Disable the field if not updatable
                 >
                   {yearOptions.map((year) => (
                     <option key={year} value={year}>{year}</option>
@@ -182,6 +219,7 @@ function ProfileForm({ currentUser }) {
                   value={hallTicketNo}
                   onChange={(e) => setHallTicketNo(e.target.value)}
                   placeholder="Enter Hall Ticket No."
+                  disabled={!isUpdatable} // Disable the field if not updatable
                 />
               </Form.Group>
   
@@ -197,10 +235,12 @@ function ProfileForm({ currentUser }) {
                       onChange={(e) => handleUsernameChange(e, state[1])}
                       placeholder={`${platform.charAt(0).toUpperCase() + platform.slice(1)} Username`}
                       className={errorMessage ? 'form-control is-invalid' : 'form-control'}
+                      disabled={!isUpdatable} // Disable the field if not updatable
                     />
                     <Button
                       onClick={() => handleVerify(platform, state[0], state[1])}
                       className={state[0].loading ? 'profile-form-button loading btn btn-primary' : state[0].verificationStatus === 'unchecked' ? 'profile-form-button btn btn-primary' : state[0].verificationStatus === 'verified_true' ? 'profile-form-button verified btn btn-success' : state[0].verificationStatus === 'verified_false' ? 'profile-form-button invalid btn btn-danger' : 'profile-form-button btn btn-primary'}
+                      disabled={!isUpdatable} // Disable the button if not updatable
                     >
                       {state[0].loading ? <FontAwesomeIcon icon={faSpinner} spin /> : state[0].verificationStatus === 'verified_true' ? 'Exists' : state[0].verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
                     </Button>
@@ -211,7 +251,8 @@ function ProfileForm({ currentUser }) {
               {/* Error message and save button */}
               <div>
                 {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
-                <Button onClick={handleSave} className="profile-form-button btn btn-primary">Save</Button>
+                {!isUpdatable && <p className="profile-form-info">Note: Year of Passing and Hall Ticket No. can be modified only once per day.</p>}
+                <Button onClick={handleSave} className="profile-form-button btn btn-primary" disabled={!isUpdatable}>Save</Button>
               </div>
             </div>
           </div>
