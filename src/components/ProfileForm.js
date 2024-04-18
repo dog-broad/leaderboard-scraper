@@ -1,14 +1,10 @@
-// Inside the ProfileForm component
-
-import React, { useState, useEffect } from 'react';
-import { firestore } from '../services/firebase';
-import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
+import React, {useState, useEffect, useMemo, useRef} from 'react';
+import supabase from '../services/supabase'; // Import Supabase client
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import $ from 'jquery';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import './ProfileForm.css'; // Keep your custom styles if needed
+import $ from 'jquery';
 
 // Import platform icons
 import codechefIcon from '../assets/codechef.png';
@@ -17,50 +13,78 @@ import gfgIcon from '../assets/gfg.png';
 import hackerrankIcon from '../assets/hackerrank.png';
 import leetcodeIcon from '../assets/leetcode.png';
 
-function ProfileForm({ currentUser }) {
-  const platforms = [
-    { platform: 'geeksforgeeks', state: useState({ platform: 'geeksforgeeks', username: '', verificationStatus: 'unchecked', loading: false }) },
-    { platform: 'codeforces', state: useState({ platform: 'codeforces', username: '', verificationStatus: 'unchecked', loading: false }) },
-    { platform: 'leetcode', state: useState({ platform: 'leetcode', username: '', verificationStatus: 'unchecked', loading: false }) },
-    { platform: 'codechef', state: useState({ platform: 'codechef', username: '', verificationStatus: 'unchecked', loading: false }) },
-    { platform: 'hackerrank', state: useState({ platform: 'hackerrank', username: '', verificationStatus: 'unchecked', loading: false }) },
-  ];
+function ProfileForm({ currentUser, currentUserMetadata }) {
+  const [geeksforgeeksState, setGeeksforgeeksState] = useState({ platform: 'geeksforgeeks', username: '', verificationStatus: 'unchecked', loading: false });
+  const [codeforcesState, setCodeforcesState] = useState({ platform: 'codeforces', username: '', verificationStatus: 'unchecked', loading: false });
+  const [leetcodeState, setLeetcodeState] = useState({ platform: 'leetcode', username: '', verificationStatus: 'unchecked', loading: false });
+  const [codechefState, setCodechefState] = useState({ platform: 'codechef', username: '', verificationStatus: 'unchecked', loading: false });
+  const [hackerrankState, setHackerrankState] = useState({ platform: 'hackerrank', username: '', verificationStatus: 'unchecked', loading: false });
+
+  const platforms = useMemo(() => [
+    { platform: 'geeksforgeeks', state: [geeksforgeeksState, setGeeksforgeeksState] },
+    { platform: 'codeforces', state: [codeforcesState, setCodeforcesState] },
+    { platform: 'leetcode', state: [leetcodeState, setLeetcodeState] },
+    { platform: 'codechef', state: [codechefState, setCodechefState] },
+    { platform: 'hackerrank', state: [hackerrankState, setHackerrankState] },
+  ], [codechefState, codeforcesState, geeksforgeeksState, hackerrankState, leetcodeState]);
 
   const [yearOfPassing, setYearOfPassing] = useState('');
   const [hallTicketNo, setHallTicketNo] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isUpdatable, setIsUpdatable] = useState(true); // State to manage updatable status
+  const [dataFetched, setDataFetched] = useState(false); // Flag to track whether data has been fetched
+
+  const platformsRef = useRef(platforms);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (!currentUser) return;
-  
-        const docRef = doc(firestore, 'users', currentUser.uid);
-        const docSnap = await getDoc(docRef);
-  
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          setYearOfPassing(userData.yearOfPassing || '');
-          setHallTicketNo(userData.hallTicketNo || '');
-          platforms.forEach(({ platform, state }) => {
-            const userPlatformData = userData.platforms.find(item => item.platform === platform);
+        if (!currentUser || dataFetched) return;
+
+        const userDataFromStorage = sessionStorage.getItem('userData');
+        if (userDataFromStorage) {
+          const userData = JSON.parse(userDataFromStorage);
+          setYearOfPassing(userData.year_of_passing || '');
+          setHallTicketNo(userData.hall_ticket_no || '');
+          platformsRef.current.forEach(({ platform, state }) => {
+            const userPlatformData = userData.platforms.find(item => item.platform_name === platform);
             if (userPlatformData) {
               state[1]({ ...state[0], username: userPlatformData.username });
             }
           });
-          // Check if the updatedAt date is same as today
-          const updatedAt = userData.updatedAt ? userData.updatedAt.toDate() : null;
+          const updatedAt = userData.updated_at ? new Date(userData.updated_at) : null;
           const today = new Date();
           setIsUpdatable(!updatedAt || updatedAt.getDate() !== today.getDate() || updatedAt.getMonth() !== today.getMonth() || updatedAt.getFullYear() !== today.getFullYear());
+        } else {
+          const { data, error } = await supabase.from('users').select().eq('user_id', currentUser.id).single();
+          if (error) {
+            throw error;
+          }
+
+          if (data) {
+            setYearOfPassing(data.year_of_passing || '');
+            setHallTicketNo(data.hall_ticket_no || '');
+            platformsRef.current.forEach(({ platform, state }) => {
+              const userPlatformData = data.platforms.find(item => item.platform_name === platform);
+              if (userPlatformData) {
+                state[1]({ ...state[0], username: userPlatformData.username });
+              }
+            });
+            const updatedAt = data.updated_at ? new Date(data.updated_at) : null;
+            const today = new Date();
+            setIsUpdatable(!updatedAt || updatedAt.getDate() !== today.getDate() || updatedAt.getMonth() !== today.getMonth() || updatedAt.getFullYear() !== today.getFullYear());
+
+            sessionStorage.setItem('userData', JSON.stringify(data));
+            setDataFetched(true);
+          }
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-  
-    fetchData();
-  }); // Empty dependency array ensures this effect runs only once after the initial render  
+
+    fetchData().then(r => console.log(r));
+  }, [currentUser, dataFetched, platformsRef]);
 
   const handleVerify = async (platform, userData, setData) => {
     try {
@@ -136,33 +160,30 @@ function ProfileForm({ currentUser }) {
 
       // Construct the data to be saved
       const userDataToSave = {
-        userId: currentUser.uid,
-        name: currentUser.displayName,
+        user_id: currentUser.id,
+        name: currentUserMetadata.full_name,
         email: currentUser.email,
-        photoURL: currentUser.photoURL,
-        yearOfPassing: selectedYear,
-        hallTicketNo: hallTicketNo,
-        updatedAt: Timestamp.now(),
+        photo_url: currentUserMetadata.avatar_url,
+        year_of_passing: selectedYear,
+        hall_ticket_no: hallTicketNo,
+        updated_at: new Date().toISOString(),
         platforms: platforms.map(({ platform, state }) => ({
-          platform: platform,
+          platform_name: platform,
           username: state[0].username,
-          verificationStatus: state[0].verificationStatus,
+          verification_status: state[0].verificationStatus,
         })),
       };
 
-      // Ensure all usernames are verified
-      if (platforms.some(({ state }) => state[0].verificationStatus !== 'verified_true')) {
-        alert('Please verify all usernames before saving.');
-        return;
+      // Save data to Supabase
+      const { error } = await supabase.from('users').upsert(userDataToSave, { returning: 'minimal' });
+      if (error) {
+        throw error;
       }
-
-      // Save data to Firestore
-      await setDoc(doc(firestore, 'users', currentUser.uid), userDataToSave);
 
       alert('Data saved successfully!');
     } catch (error) {
-      console.error('Error saving data to Firestore:', error);
-      alert('Error saving data. Please try again later.');
+      console.error('Error saving data:', error);
+      alert('Error saving data. Please try again later.' + error);
     }
   };
 
@@ -191,74 +212,74 @@ function ProfileForm({ currentUser }) {
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center">
-        <Col md={8}>
-          <div className="card profile-form-container" style={{ filter: isUpdatable ? 'none' : 'blur(4px)', pointerEvents: isUpdatable ? 'auto' : 'none' }}>
-            <div className="card-body">
-              {/* Year of Passing */}
-              <Form.Group controlId="yearOfPassing" className="mb-3">
-                <Form.Label className="h5">Year of Passing</Form.Label>
-                <Form.Control
-                  as="select"
-                  value={yearOfPassing}
-                  onChange={(e) => setYearOfPassing(e.target.value)}
-                  disabled={!isUpdatable} // Disable the field if not updatable
-                >
-                  {yearOptions.map((year) => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </Form.Control>
-              </Form.Group>
-              
-              {/* Hall Ticket No. */}
-              <Form.Group controlId="hallTicketNo" className="mb-3">
-                <Form.Label className="h5">Hall Ticket No.</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={hallTicketNo}
-                  onChange={(e) => setHallTicketNo(e.target.value)}
-                  placeholder="Enter Hall Ticket No."
-                  disabled={!isUpdatable} // Disable the field if not updatable
-                />
-              </Form.Group>
-  
-              {/* Platforms */}
-              <Form.Group controlId="platforms">
-                <Form.Label className="h5">Platforms</Form.Label>
-                {platforms.map(({ platform, state }) => (
-                  <div key={platform} className="d-flex align-items-center mb-3">
-                    <img src={platformIcons[platform]} alt={platform} className="mr-2" style={{ width: '30px', height: '30px', marginRight: '10px' }} />
-                    <Form.Control
-                      type="text"
-                      value={state[0].username}
-                      onChange={(e) => handleUsernameChange(e, state[1])}
-                      placeholder={`${platform.charAt(0).toUpperCase() + platform.slice(1)} Username`}
-                      className={errorMessage ? 'form-control is-invalid' : 'form-control'}
+      <Container>
+        <Row className="justify-content-center">
+          <Col md={8}>
+            <div className="card profile-form-container" style={{ filter: isUpdatable ? 'none' : 'blur(4px)', pointerEvents: isUpdatable ? 'auto' : 'none' }}>
+              <div className="card-body">
+                {/* Year of Passing */}
+                <Form.Group controlId="yearOfPassing" className="mb-3">
+                  <Form.Label className="h5">Year of Passing</Form.Label>
+                  <Form.Control
+                      as="select"
+                      value={yearOfPassing}
+                      onChange={(e) => setYearOfPassing(e.target.value)}
                       disabled={!isUpdatable} // Disable the field if not updatable
-                    />
-                    <Button
-                      onClick={() => handleVerify(platform, state[0], state[1])}
-                      className={state[0].loading ? 'profile-form-button loading btn btn-primary' : state[0].verificationStatus === 'unchecked' ? 'profile-form-button btn btn-primary' : state[0].verificationStatus === 'verified_true' ? 'profile-form-button verified btn btn-success' : state[0].verificationStatus === 'verified_false' ? 'profile-form-button invalid btn btn-danger' : 'profile-form-button btn btn-primary'}
-                      disabled={!isUpdatable} // Disable the button if not updatable
-                    >
-                      {state[0].loading ? <FontAwesomeIcon icon={faSpinner} spin /> : state[0].verificationStatus === 'verified_true' ? 'Exists' : state[0].verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
-                    </Button>
-                  </div>
-                ))}
-              </Form.Group>
-  
-              {/* Error message and save button */}
-              <div>
-                {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
-                {!isUpdatable && <p className="profile-form-info">Note: Year of Passing and Hall Ticket No. can be modified only once per day.</p>}
-                <Button onClick={handleSave} className="profile-form-button btn btn-primary" disabled={!isUpdatable}>Save</Button>
+                  >
+                    {yearOptions.map((year) => (
+                        <option key={year} value={year}>{year}</option>
+                    ))}
+                  </Form.Control>
+                </Form.Group>
+
+                {/* Hall Ticket No. */}
+                <Form.Group controlId="hallTicketNo" className="mb-3">
+                  <Form.Label className="h5">Hall Ticket No.</Form.Label>
+                  <Form.Control
+                      type="text"
+                      value={hallTicketNo}
+                      onChange={(e) => setHallTicketNo(e.target.value)}
+                      placeholder="Enter Hall Ticket No."
+                      disabled={!isUpdatable} // Disable the field if not updatable
+                  />
+                </Form.Group>
+
+                {/* Platforms */}
+                <Form.Group controlId="platforms">
+                  <Form.Label className="h5">Platforms</Form.Label>
+                  {platforms.map(({ platform, state }) => (
+                      <div key={platform} className="d-flex align-items-center mb-3">
+                        <img src={platformIcons[platform]} alt={platform} className="mr-2" style={{ width: '30px', height: '30px', marginRight: '10px' }} />
+                        <Form.Control
+                            type="text"
+                            value={state[0].username}
+                            onChange={(e) => handleUsernameChange(e, state[1])}
+                            placeholder={`${platform.charAt(0).toUpperCase() + platform.slice(1)} Username`}
+                            className={errorMessage ? 'form-control is-invalid' : 'form-control'}
+                            disabled={!isUpdatable} // Disable the field if not updatable
+                        />
+                        <Button
+                            onClick={() => handleVerify(platform, state[0], state[1])}
+                            className={state[0].loading ? 'profile-form-button loading btn btn-primary' : state[0].verificationStatus === 'unchecked' ? 'profile-form-button btn btn-primary' : state[0].verificationStatus === 'verified_true' ? 'profile-form-button verified btn btn-success' : state[0].verificationStatus === 'verified_false' ? 'profile-form-button invalid btn btn-danger' : 'profile-form-button btn btn-primary'}
+                            disabled={!isUpdatable} // Disable the button if not updatable
+                        >
+                          {state[0].loading ? <FontAwesomeIcon icon={faSpinner} spin /> : state[0].verificationStatus === 'verified_true' ? 'Exists' : state[0].verificationStatus === 'verified_false' ? 'Invalid' : 'Verify'}
+                        </Button>
+                      </div>
+                  ))}
+                </Form.Group>
+
+                {/* Error message and save button */}
+                <div>
+                  {errorMessage && <p className="profile-form-error-message">{errorMessage}</p>}
+                  {!isUpdatable && <p className="profile-form-info">Note: Year of Passing and Hall Ticket No. can be modified only once per day.</p>}
+                  <Button onClick={handleSave} className="profile-form-button btn btn-primary" disabled={!isUpdatable}>Save</Button>
+                </div>
               </div>
             </div>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+          </Col>
+        </Row>
+      </Container>
   );
 }
 

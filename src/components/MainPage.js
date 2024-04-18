@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Container, Row } from 'react-bootstrap';
+import {Container, Row, Col, Card, Button} from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faExclamationCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { firestore } from '../services/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { faCheckCircle, faExclamationCircle, faSpinner, faUser } from '@fortawesome/free-solid-svg-icons'; // Import faUser icon for profile page
+import supabase from '../services/supabase';
 
 // Import platform icons
 import codechefIcon from '../assets/codechef.png';
@@ -12,29 +11,39 @@ import gfgIcon from '../assets/gfg.png';
 import hackerrankIcon from '../assets/hackerrank.png';
 import leetcodeIcon from '../assets/leetcode.png';
 
-const MainPage = ({ currentUser }) => {
-  const [userData, setUserData] = useState([]);
+const MainPage = ({ currentUser, currentUserMetadata }) => {
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Check if a user is logged in
         if (!currentUser) {
           setLoading(false);
           return;
         }
 
-        const querySnapshot = await getDocs(collection(firestore, 'users'));
-        const usersData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        // find the user data for the current user
-        const currentUserData = usersData.find(user => user.userId === currentUser.uid);
-        // update the state with the current user's data
-        setUserData(currentUserData ? [currentUserData] : []);
-        setLoading(false);
+        // Check if user data is already cached
+        const cachedUserData = localStorage.getItem('userData');
+        if (cachedUserData) {
+          setUserData(JSON.parse(cachedUserData));
+          setLoading(false);
+        } else {
+          // Fetch user data from Supabase
+          const { data, error } = await supabase.from('users').select().eq('user_id', currentUser.id).single();
+          if (error) {
+            throw error;
+          }
+
+          if (data) {
+            localStorage.setItem('userData', JSON.stringify(data)); // Cache user data
+            setUserData(data);
+            setLoading(false);
+          } else {
+            setUserData(null);
+            setLoading(false);
+          }
+        }
       } catch (error) {
         console.error('Error fetching users data:', error);
         setLoading(false);
@@ -68,66 +77,72 @@ const MainPage = ({ currentUser }) => {
   };
 
   return (
-    <Container className="mt-5">
-      <h1 className="text-center mb-4">Welcome to Coding Leaderboard!</h1>
-      <Row className="justify-content-center">
-        <Col md={6}>
-          {currentUser ? (
-            <Card className="rounded shadow">
-              <Card.Body>
-                <Card.Title className="text-center">Welcome, {currentUser.displayName}!</Card.Title>
-                <Card.Text className="text-center">Email: {currentUser.email}</Card.Text>
-                <div className="d-flex justify-content-center">
-                  <img src={currentUser.photoURL} alt="User" className="rounded-circle" style={{ width: '150px', height: '150px' }} />
-                </div>
-              </Card.Body>
-            </Card>
-          ) : (
-            <p className="text-center">Please log in to view your profile status.</p>
-          )}
-        </Col>
-      </Row>
-      {/* Conditionally render Profile Status card */}
-      {currentUser && (
-        <Row className="mt-4 justify-content-center">
-          <Col md={8}>
-            <Card className="mb-4 rounded shadow">
-              <Card.Body>
-                <h3 className="mb-3 text-center">Profile Status</h3>
-                {loading ? (
-                  <p className="text-center">Loading...</p>
-                ) : userData.length === 0 ? (
-                  <p className="text-center">No user data found. Please move to Profile Page to update your profile.</p>
-                ) : (
-                  userData.map((user, index) => (
-                    <div key={index} className="mb-4">
-                      <ul className="list-unstyled">
-                        <li><strong>Year of Passing:</strong> {user.yearOfPassing ? user.yearOfPassing : <FontAwesomeIcon icon={faExclamationCircle} className="text-danger" />} {user.yearOfPassing ? '' : 'Year of Passing not provided'}</li>
-                        <li><strong>Hall Ticket No.:</strong> {user.hallTicketNo ? user.hallTicketNo : <FontAwesomeIcon icon={faExclamationCircle} className="text-danger" />} {user.hallTicketNo ? '' : 'Hall Ticket No. not provided'}</li>
-                        <li className="mt-3">
-                          <strong>Platforms:</strong>
-                          <ul className="list-unstyled">
-                            {user.platforms.map((platform, index) => (
-                              <li key={index} className="d-flex align-items-center mb-2">
-                                <img src={platformIcons[platform.platform]} alt={platform.platform} className="mr-2" style={{ width: '30px', height: '30px', marginRight: '10px' }} />
-                                <p className="mb-0">
-                                    <strong>{platform.platform.charAt(0).toUpperCase() + platform.platform.slice(1)}:</strong>{' '}
-                                {platform.username} {renderPlatformStatus(platform.verificationStatus)}
-                                </p>
-                              </li>
-                            ))}
-                          </ul>
-                        </li>
-                      </ul>
+      <Container className="mt-5">
+        <h1 className="text-center mb-4">Welcome to Coding Leaderboard!</h1>
+        <Row className="justify-content-center">
+          <Col md={6}>
+            {currentUser ? (
+                <Card className="rounded shadow">
+                  <Card.Body>
+                    <Card.Title className="text-center">Welcome, {currentUserMetadata.full_name}!</Card.Title>
+                    <Card.Text className="text-center">Email: {currentUser.email}</Card.Text>
+                    <div className="d-flex justify-content-center">
+                      <img src={currentUserMetadata.avatar_url} alt="User" className="rounded-circle" style={{ width: '150px', height: '150px' }} />
                     </div>
-                  ))
-                )}
-              </Card.Body>
-            </Card>
+                  </Card.Body>
+                </Card>
+            ) : (
+                <p className="text-center">Please log in to view your profile status.</p>
+            )}
           </Col>
         </Row>
-      )}
-    </Container>
+        {/* Conditionally render Profile Status card */}
+        {currentUser && (
+            <Row className="mt-4 justify-content-center">
+              <Col md={8}>
+                <Card className="mb-4 rounded shadow">
+                  <Card.Body>
+                    <h3 className="mb-3 text-center">Profile Status</h3>
+                    {loading ? (
+                        <p className="text-center">Loading...</p>
+                    ) : !userData ? (
+                        <div>
+                          <p className="text-center">No user data found. Please move to Profile Page to update your profile.</p>
+                          {/* Button to navigate to profile page */}
+                          <div className="text-center mt-3">
+                            <Button variant="primary" onClick={() => window.location.href = '/profile'}>
+                              <FontAwesomeIcon icon={faUser} className="mr-2" /> Go to Profile
+                            </Button>
+                          </div>
+                        </div>
+                    ) : (
+                        <div>
+                          <ul className="list-unstyled">
+                            <li><strong>Year of Passing:</strong> {userData.year_of_passing ? userData.year_of_passing : <FontAwesomeIcon icon={faExclamationCircle} className="text-danger" />} {userData.year_of_passing ? '' : 'Year of Passing not provided'}</li>
+                            <li><strong>Hall Ticket No.:</strong> {userData.hall_ticket_no ? userData.hall_ticket_no : <FontAwesomeIcon icon={faExclamationCircle} className="text-danger" />} {userData.hall_ticket_no ? '' : 'Hall Ticket No. not provided'}</li>
+                            <li className="mt-3">
+                              <strong>Platforms:</strong>
+                              <ul className="list-unstyled">
+                                {userData.platforms.map((platform, index) => (
+                                    <li key={index} className="d-flex align-items-center mb-2">
+                                      <img src={platformIcons[platform.platform_name]} alt={platform.platform_name} className="mr-2" style={{ width: '30px', height: '30px', marginRight: '10px' }} />
+                                      <p className="mb-0">
+                                        <strong>{platform.platform_name.charAt(0).toUpperCase() + platform.platform_name.slice(1)}:</strong>{' '}
+                                        {platform.username} {renderPlatformStatus(platform.verification_status)}
+                                      </p>
+                                    </li>
+                                ))}
+                              </ul>
+                            </li>
+                          </ul>
+                        </div>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+        )}
+      </Container>
   );
 };
 

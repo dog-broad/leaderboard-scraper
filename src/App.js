@@ -1,7 +1,6 @@
-// src/App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { auth } from './services/firebase';
+import supabase from './services/supabase'; // Import Supabase client
 import { Container } from 'react-bootstrap';
 import Header from './components/Header';
 import MainPage from './components/MainPage';
@@ -11,29 +10,37 @@ import UserDataPage from './components/UserDataPage';
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [currentUserMetadata, setCurrentUserMetadata] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      setCurrentUser(user);
+    const session = supabase.auth.getSession();
+    console.log('Session:', session);
+
+    const unsubscribe = supabase.auth.onAuthStateChange((event, session) => {
+      setCurrentUser(session?.user || null);
+      setCurrentUserMetadata(session?.user?.user_metadata || null);
     });
 
-    return () => unsubscribe();
+    // Ensure that unsubscribe is a function before returning
+    if (typeof unsubscribe === 'function') {
+      return () => unsubscribe();
+    }
   }, []);
 
   return (
-    <Router>
-      <div>
-        <Header user={currentUser} />
-        <Container>
-          <Routes>
-            <Route path="/" element={<MainPage currentUser={currentUser} />} />
-            <Route path="/profile" element={<ProfilePage currentUser={currentUser} />} />
-            <Route path="/userdata" element={<UserDataPage />} />
-            <Route path="/leaderboard" element={<LeaderboardPage />} />
-          </Routes>
-        </Container>
-      </div>
-    </Router>
+      <Router>
+        <div>
+          <Header user={currentUser} />
+          <Container>
+            <Routes>
+              <Route path="/" element={<MainPage currentUser={currentUser} currentUserMetadata={currentUserMetadata} />} />
+              <Route path="/profile" element={<ProfilePage currentUser={currentUser} currentUserMetadata={currentUserMetadata} />} />
+              <Route path="/userdata" element={<UserDataPage />} />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+            </Routes>
+          </Container>
+        </div>
+      </Router>
   );
 }
 
