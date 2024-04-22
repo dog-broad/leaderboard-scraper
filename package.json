@@ -13,6 +13,7 @@
     "@testing-library/react": "^13.4.0",
     "@tsparticles/react": "^3.0.0",
     "ag-grid-react": "^31.2.0",
+    "axios": "^1.6.8",
     "bootstrap": "^5.3.3",
     "firebase": "^10.9.0",
     "jquery": "^3.7.1",
