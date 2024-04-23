@@ -13,6 +13,10 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentUserMetadata, setCurrentUserMetadata] = useState(null);
 
+  const fetchData = async () => {
+
+  }
+
   useEffect(() => {
     const session = supabase.auth.getSession();
     console.log('Session:', session);
