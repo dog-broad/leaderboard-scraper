@@ -151,6 +151,12 @@ function ProfileForm({ currentUser, currentUserMetadata }) {
         return;
       }
 
+      // Ensure all usernames are verified
+      if (platforms.some(({ state }) => state[0].verificationStatus !== 'verified_true')) {
+        alert('Please verify all usernames before saving.');
+        return;
+      }
+
       // Validation for year of passing
       const selectedYear = parseInt(yearOfPassing);
       if (isNaN(selectedYear) || selectedYear < 2025) {
@@ -183,7 +189,7 @@ function ProfileForm({ currentUser, currentUserMetadata }) {
       alert('Data saved successfully!');
     } catch (error) {
       console.error('Error saving data:', error);
-      alert('Error saving data. Please try again later.' + error);
+      alert('Error saving data. Please try again later.' + error.message);
     }
   };
 
