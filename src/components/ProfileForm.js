@@ -91,7 +91,7 @@ function ProfileForm({ currentUser, currentUserMetadata }) {
       console.log(`Verifying ${platform} username...`);
       let url = '';
       if (platform === 'leetcode') {
-        url = `https://alfa-leetcode-api.onrender.com/${userData.username}`;
+        url = `https://alfa-leetcode-api-v3y6.onrender.com${userData.username}`;
       } else {
         url = `https://codeprofilevalidator.onrender.com/check-url-platform/?platform=${platform}&username=${userData.username}`;
       }
