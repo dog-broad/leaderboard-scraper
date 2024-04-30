@@ -151,11 +151,20 @@ function ProfileForm({ currentUser, currentUserMetadata }) {
         return;
       }
 
-      // Ensure all usernames are verified
-      if (platforms.some(({ state }) => state[0].verificationStatus !== 'verified_true')) {
-        alert('Please verify all usernames before saving.');
+      // Check if any username is empty
+      const emptyUsernames = platforms.filter(({ state }) => state[0].username.trim() === '');
+      if (emptyUsernames.length > 0) {
+        alert('Please fill in all usernames before saving.');
         return;
       }
+
+      // Verify all usernames
+      platforms.forEach(({ state }) => {
+        const verificationStatus = state[0].verificationStatus;
+        if (verificationStatus !== 'verified_true') {
+          alert(`Username ${state[0].username} is not verified.`);
+        }
+      });
 
       // Validation for year of passing
       const selectedYear = parseInt(yearOfPassing);

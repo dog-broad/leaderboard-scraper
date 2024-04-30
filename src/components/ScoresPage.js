@@ -1,199 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
-import axios from 'axios'; // Import Axios for making HTTP requests
 import supabase from '../services/supabase'; // Import Supabase client
 
-function ScoresPage( { currentUser } ) {
-    const [scores, setScores] = useState([]);
-    const [errorMessage, setErrorMessage] = useState('');
+// Import platform icons
+import codechefIcon from '../assets/codechef.png';
+import codeforcesIcon from '../assets/codeforces.png';
+import gfgIcon from '../assets/gfg.png';
+import hackerrankIcon from '../assets/hackerrank.png';
+import leetcodeIcon from '../assets/leetcode.png';
 
-    // Function to fetch data
-    const fetchData = async () => {
+function ScoresPage({ currentUser }) {
+    const [userPlatformData, setUserPlatformData] = useState(null);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [lastUpdate, setLastUpdate] = useState(null);
+
+    useEffect(() => {
+        if (!currentUser) {
+            return;
+        }
+
+        const cachedUserData = sessionStorage.getItem(`userData_${currentUser.id}`);
+        if (cachedUserData) {
+            setUserPlatformData(JSON.parse(cachedUserData));
+        } else {
+            fetchUserData().then(r => r);
+        }
+    }, [currentUser]);
+
+    useEffect(() => {
+        if (userPlatformData) {
+            sessionStorage.setItem(`userData_${currentUser.id}`, JSON.stringify(userPlatformData));
+        }
+    }, [userPlatformData, currentUser]);
+
+    const fetchUserData = async () => {
         try {
             // Fetch user data from the platforms table
-            const { data: userData, error: userError } = await supabase
+            const { data, error } = await supabase
                 .from('platforms')
                 .select()
                 .eq('user_id', currentUser.id);
 
-            if (userError) {
-                throw userError;
+            if (error) {
+                throw error;
             }
 
-            if (!userData) {
-                // Handle case when user data is not found
+            setUserPlatformData(data);
+            return data;
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            setErrorMessage('Error fetching user data. Please try again later.');
+            return null;
+        }
+    };
+
+    // Map platform names to their corresponding icons
+    const platformIcons = {
+        codechef: codechefIcon,
+        codeforces: codeforcesIcon,
+        geeksforgeeks: gfgIcon,
+        hackerrank: hackerrankIcon,
+        leetcode: leetcodeIcon
+    };
+
+    // Function to update scores
+    const updateScores = async () => {
+        try {
+            // Check if last update was more than a day ago
+            if (lastUpdate && (new Date() - new Date(lastUpdate) < 24 * 60 * 60 * 1000)) {
+                // If last update was less than a day ago, show error message
+                setErrorMessage('You can only update scores once a day.');
                 return;
             }
 
-            // Array to store promises for fetching data from different platforms
-            const platformPromises = [];
+            // Run scraper scripts to update scores
+            console.log('Updating scores...');
+            console.log(userPlatformData);
 
-            // Iterate over userData to fetch data for each platform
-            userData.forEach(platform => {
-                // Fetch data for each platform and push the promise to the platformPromises array
-                switch (platform.platform_name) {
-                    case 'codeforces':
-                        platformPromises.push(fetchCodeforcesData(platform.platform_username));
-                        break;
-                    case 'leetcode':
-                        platformPromises.push(fetchLeetcodeData(platform.platform_username));
-                        break;
-                    case 'geeksforgeeks':
-                        platformPromises.push(fetchGeeksforgeeksData(platform.platform_username));
-                        break;
-                    case 'hackerrank':
-                        platformPromises.push(fetchHackerrankData(platform.yearOfPassing));
-                        break;
-                    case 'codechef':
-                        platformPromises.push(fetchCodechefData(platform.platform_username));
-                        break;
-                    default:
-                        console.log(`Unknown platform: ${platform.platform_name}`);
-                }
-            });
-
-            // Wait for all promises to resolve
-            await Promise.all(platformPromises);
-
-            // Fetch and update scores from the database
-            const { data: updatedScores, error: scoresError } = await supabase
-                .from('platforms')
-                .select()
-                .eq('user_id', currentUser.id);
-
-            if (scoresError) {
-                throw scoresError;
-            }
-
-            setScores(updatedScores);
+            // Update last update time
+            setLastUpdate(new Date().toISOString());
+            setErrorMessage('');
         } catch (error) {
-            console.error('Error fetching or updating scores:', error);
-            setErrorMessage('Error fetching or updating scores. Please try again later.');
-        }
-    };
-
-    // Function to fetch Codeforces data
-    const fetchCodeforcesData = async (username) => {
-        try {
-            const response = await axios.get(`https://codeforces.com/api/user.info?handles=${username}&checkHistoricHandles=false`);
-            console.log('Codeforces data:', response.data);
-            // Store or process the data as needed
-        } catch (error) {
-            console.error('Error fetching Codeforces data:', error);
-        }
-    };
-
-    // Function to fetch LeetCode data
-    const fetchLeetcodeData = async (username) => {
-        try {
-            const response = await axios.get(`https://alfa-leetcode-api.onrender.com/${username}/contest`);
-            console.log('LeetCode data:', response.data);
-            // Store or process the data as needed
-        } catch (error) {
-            console.error('Error fetching LeetCode data:', error);
-        }
-    };
-
-    // Function to fetch GeeksforGeeks data
-    const fetchGeeksforgeeksData = async (username) => {
-        try {
-            const response = await axios.get(`https://geeks-for-geeks-api.vercel.app/${username}`);
-            console.log('GeeksforGeeks data:', response.data);
-            // Store or process the data as needed
-        } catch (error) {
-            console.error('Error fetching GeeksforGeeks data:', error);
-        }
-    };
-
-    // Function to fetch HackerRank data
-    const fetchHackerrankData = async (yearOfPassing) => {
-        try {
-            const { data: searchTokens, error: searchTokensError } = await supabase
-                .from('search_tokens')
-                .select('urls')
-                .eq('year_of_passing', yearOfPassing)
-                .single();
-
-            if (searchTokensError) {
-                throw searchTokensError;
-            }
-
-            const SEARCH_TOKENS = searchTokens.urls;
-
-            // Array to store promises for fetching HackerRank data
-            const hackerrankPromises = [];
-
-            // Iterate over SEARCH_TOKENS to fetch data for each trackerName
-            for (const trackerName of SEARCH_TOKENS) {
-                if (trackerName === "null") {
-                    break;
-                }
-                for (let j = 0; j < 10000; j += 100) {
-                    try {
-                        const url = `https://www.hackerrank.com/rest/contests/${trackerName}/leaderboard?offset=${j}&limit=100`;
-                        // Push the promise to the hackerrankPromises array
-                        hackerrankPromises.push(axios.get(url));
-                    } catch (e) {
-                        console.error(`Error fetching Hackerrank rating for ${trackerName}: ${e}`);
-                    }
-                }
-            }
-
-            // Wait for all promises to resolve
-            const responses = await Promise.all(hackerrankPromises);
-            responses.forEach(response => {
-                const leaderboard = response.data;
-                const models = leaderboard.models;
-                if (!models) {
-                    return;
-                }
-                for (const model of models) {
-                    if (model.username === 'null') {
-                        return;
-                    }
-                    const username = model.username;
-                    const rating = model.rating;
-                    const data = {
-                        username: username,
-                        score: rating
-                    };
-                    console.log(data);
-                    // Process the data as needed
-                }
-            });
-        } catch (error) {
-            console.error('Error fetching HackerRank data:', error);
-        }
-    };
-
-    // Function to fetch CodeChef data
-    const fetchCodechefData = async (username) => {
-        try {
-            const response = await axios.get(`https://codechef-api.vercel.app/${username}`);
-            console.log('CodeChef data:', response.data);
-            // Store or process the data as needed
-        } catch (error) {
-            console.error('Error fetching CodeChef data:', error);
-        }
-    };
-
-
-    // Function to store scores in the database
-    const storeScoresInDatabase = async (userId, scores) => {
-        try {
-            const records = scores.map(score => ({
-                user_id: userId,
-                platform_name: score.platform,
-                platform_username: score.username,
-                platform_data: score.data,
-                updated_at: new Date().toISOString()
-            }));
-
-            await supabase
-                .from('platforms')
-                .upsert(records);
-        } catch (error) {
-            console.error('Error storing scores in the database:', error);
+            console.error('Error updating scores:', error);
+            setErrorMessage('Error updating scores. Please try again later.');
         }
     };
 
@@ -205,20 +94,23 @@ function ScoresPage( { currentUser } ) {
                         <Card.Body>
                             <h3 className="mb-3 text-center">Your Scores</h3>
                             {errorMessage && <p className="text-danger">{errorMessage}</p>}
-                            <Button onClick={fetchData} variant="primary">Fetch Data</Button>
                             <Row>
-                                {scores.map((score, index) => (
+                                {userPlatformData && userPlatformData.map((platform, index) => (
                                     <Col key={index} md={6} className="mb-3">
                                         <Card>
                                             <Card.Body>
-                                                <h5 className="card-title">{score.platform_name}</h5>
-                                                <p className="card-text">Score: {score.platform_data.score}</p>
-                                                <p className="card-text">Last Updated: {new Date(score.updated_at).toLocaleString()}</p>
+                                                <div className="d-flex align-items-center mb-3">
+                                                    <img src={platformIcons[platform.platform_name]} alt={platform.platform_name} className="mr-2" style={{ width: '30px', height: '30px' }} />
+                                                    <h5 className="card-title mb-0">{platform.platform_name.charAt(0).toUpperCase() + platform.platform_name.slice(1)}</h5>
+                                                </div>
+                                                <p className="card-text">Username: {platform.platform_username}</p>
+                                                <p className="card-text">Score: {platform.platform_data ? platform.platform_data.score : '~'}</p>
                                             </Card.Body>
                                         </Card>
                                     </Col>
                                 ))}
                             </Row>
+                            <Button onClick={updateScores} variant="primary" className="mt-3">Update Scores</Button>
                         </Card.Body>
                     </Card>
                 </Col>
