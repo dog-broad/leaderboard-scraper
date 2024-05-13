@@ -25,6 +25,7 @@ function ScoresPage({ currentUser }) {
         } else {
             fetchUserData().then(r => r);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser]);
 
     useEffect(() => {
@@ -85,6 +86,7 @@ function ScoresPage({ currentUser }) {
             setErrorMessage('Error updating scores. Please try again later.');
         }
     };
+
 
     return (
         <Container className="mt-5">
