@@ -25,7 +25,6 @@ function ScoresPage({ currentUser }) {
         } else {
             fetchUserData().then(r => r);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser]);
 
     useEffect(() => {
@@ -38,7 +37,7 @@ function ScoresPage({ currentUser }) {
         try {
             // Fetch user data from the platforms table
             const { data, error } = await supabase
-                .from('platforms')
+                .from('platform_data')
                 .select()
                 .eq('user_id', currentUser.id);
 
@@ -76,8 +75,15 @@ function ScoresPage({ currentUser }) {
 
             // Run scraper scripts to update scores
             console.log('Updating scores...');
-            console.log(userPlatformData);
 
+            // Call Django API to update scores with POST request
+            let url = `https://codeprofilevalidator.onrender.com/update_scores/${currentUser.id}/`;
+            await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
             // Update last update time
             setLastUpdate(new Date().toISOString());
             setErrorMessage('');
@@ -87,26 +93,25 @@ function ScoresPage({ currentUser }) {
         }
     };
 
-
     return (
-        <Container className="mt-5">
+        <Container className="mt-5 mb-5">
             <Row className="justify-content-center">
                 <Col md={8}>
-                    <Card>
+                    <Card className="rounded shadow">
                         <Card.Body>
                             <h3 className="mb-3 text-center">Your Scores</h3>
                             {errorMessage && <p className="text-danger">{errorMessage}</p>}
                             <Row>
                                 {userPlatformData && userPlatformData.map((platform, index) => (
                                     <Col key={index} md={6} className="mb-3">
-                                        <Card>
+                                        <Card className="rounded shadow">
                                             <Card.Body>
                                                 <div className="d-flex align-items-center mb-3">
                                                     <img src={platformIcons[platform.platform_name]} alt={platform.platform_name} className="mr-2" style={{ width: '30px', height: '30px' }} />
                                                     <h5 className="card-title mb-0">{platform.platform_name.charAt(0).toUpperCase() + platform.platform_name.slice(1)}</h5>
                                                 </div>
                                                 <p className="card-text">Username: {platform.platform_username}</p>
-                                                <p className="card-text">Score: {platform.platform_data ? platform.platform_data.score : '~'}</p>
+                                                <p className="card-text">Score: {platform.score ? platform.score : '~'}</p>
                                             </Card.Body>
                                         </Card>
                                     </Col>
