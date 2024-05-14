@@ -58,6 +58,7 @@ function ProfileForm({currentUser, currentUserMetadata}) {
     const [errorMessage, setErrorMessage] = useState('');
     const [isUpdatable, setIsUpdatable] = useState(true); // State to manage updatable status
     const [dataFetched, setDataFetched] = useState(false); // Flag to track whether data has been fetched
+    const [userDataEmpty, setUserDataEmpty] = useState(false); // Flag to track whether user data is empty
 
     const platformsRef = useRef(platforms);
 
@@ -71,51 +72,44 @@ function ProfileForm({currentUser, currentUserMetadata}) {
                     const userData = JSON.parse(userDataFromStorage);
                     setYearOfPassing(userData.year_of_passing || '');
                     setHallTicketNo(userData.hall_ticket_no || '');
+                    const platformsData = userData.platforms || {};
                     platformsRef.current.forEach(({platform, state}) => {
-                        const userPlatformData = userData.platforms[platform]; // Access platform data directly
+                        const userPlatformData = platformsData[platform];
                         if (userPlatformData) {
-                            state[1]({
-                                ...state[0],
-                                username: userPlatformData.platform_username, // Use platform_username
-                                verificationStatus: userPlatformData.verification_status // Use the updated field name
-                            });
+                            state[1]({...state[0], username: userPlatformData.platform_username});
                         }
                     });
                     const updatedAt = userData.updated_at ? new Date(userData.updated_at) : null;
                     const today = new Date();
-                    setIsUpdatable(
-                        !updatedAt ||
-                        updatedAt.getDate() !== today.getDate() ||
-                        updatedAt.getMonth() !== today.getMonth() ||
-                        updatedAt.getFullYear() !== today.getFullYear()
-                    );
+                    setIsUpdatable(!updatedAt || updatedAt.getDate() !== today.getDate() || updatedAt.getMonth() !== today.getMonth() || updatedAt.getFullYear() !== today.getFullYear());
                 } else {
-                    const {data, error} = await supabase.from('users').select().eq('user_id', currentUser.id).single();
+                    if (userDataEmpty) return;
+                    const {data, error} = await supabase
+                        .from('users')
+                        .select()
+                        .eq('user_id', currentUser.id)
+                        .single();
                     if (error) {
+                        if (error.code === 'PGRST116') {
+                            setUserDataEmpty(true);
+                            return;
+                        }
                         throw error;
                     }
 
                     if (data) {
                         setYearOfPassing(data.year_of_passing || '');
                         setHallTicketNo(data.hall_ticket_no || '');
+                        const platformsData = data.platforms || {};
                         platformsRef.current.forEach(({platform, state}) => {
-                            const userPlatformData = data.platforms[platform]; // Access platform data directly
+                            const userPlatformData = platformsData[platform];
                             if (userPlatformData) {
-                                state[1]({
-                                    ...state[0],
-                                    username: userPlatformData.platform_username, // Use platform_username
-                                    verificationStatus: userPlatformData.verification_status // Use the updated field name
-                                });
+                                state[1]({...state[0], username: userPlatformData.platform_username});
                             }
                         });
                         const updatedAt = data.updated_at ? new Date(data.updated_at) : null;
                         const today = new Date();
-                        setIsUpdatable(
-                            !updatedAt ||
-                            updatedAt.getDate() !== today.getDate() ||
-                            updatedAt.getMonth() !== today.getMonth() ||
-                            updatedAt.getFullYear() !== today.getFullYear()
-                        );
+                        setIsUpdatable(!updatedAt || updatedAt.getDate() !== today.getDate() || updatedAt.getMonth() !== today.getMonth() || updatedAt.getFullYear() !== today.getFullYear());
 
                         sessionStorage.setItem('userData', JSON.stringify(data));
                         setDataFetched(true);
@@ -127,14 +121,15 @@ function ProfileForm({currentUser, currentUserMetadata}) {
         };
 
         fetchData().then(r => console.log(r));
-    }, [currentUser, dataFetched, platformsRef]);
+    }, [currentUser, userDataEmpty, dataFetched, platformsRef]);
+
 
     const handleVerify = async (platform, userData, setData) => {
         try {
             console.log(`Verifying ${platform} username...`);
             let url = '';
             if (platform === 'leetcode') {
-                url = `https://alfa-leetcode-api.onrender.com/${userData.username}`;
+                url = `https://alfa-leetcode-api-v3y6.onrender.com/${userData.username}`;
             } else {
                 url = `https://codeprofilevalidator.onrender.com/check-url-platform/?platform=${platform}&username=${userData.username}`;
             }
@@ -224,6 +219,21 @@ function ProfileForm({currentUser, currentUserMetadata}) {
                 return;
             }
 
+            // Check if any username is empty
+            const emptyUsernames = platforms.filter(({state}) => state[0].username.trim() === '');
+            if (emptyUsernames.length > 0) {
+                alert('Please fill in all usernames before saving.');
+                return;
+            }
+
+            // Verify all usernames
+            platforms.forEach(({state}) => {
+                const verificationStatus = state[0].verificationStatus;
+                if (verificationStatus !== 'verified_true') {
+                    alert(`Username ${state[0].username} is not verified.`);
+                }
+            });
+
             // Validation for year of passing
             const selectedYear = parseInt(yearOfPassing);
             if (isNaN(selectedYear) || selectedYear < 2025) {
@@ -257,11 +267,11 @@ function ProfileForm({currentUser, currentUserMetadata}) {
             }
 
             alert('Data saved successfully!');
+            // Dirty hack to trigger re-render
+            setUserDataEmpty(false);
         } catch (error) {
             console.error('Error saving data:', error);
-            if (error.message && error.details) {
-                alert('Error saving data. Please try again later.' + error.message + '\n' + error.details);
-            }
+            alert('Error saving data. Please try again later.' + error.message);
         }
     };
 
